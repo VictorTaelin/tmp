@@ -79,6 +79,16 @@ rl.on("line", (input) => {
       ws.send(JSON.stringify({$: "load", room, from}));
       break;
     }
+    case "/watch": {
+      const room = parts[1];
+      ws.send(JSON.stringify({$: "watch", room}));
+      break;
+    }
+    case "/unwatch": {
+      const room = parts[1];
+      ws.send(JSON.stringify({$: "unwatch", room}));
+      break;
+    }
   }
 
   rl.prompt();
