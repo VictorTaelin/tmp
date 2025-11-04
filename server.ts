@@ -1,5 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
-import { appendFileSync, readFileSync, existsSync, mkdirSync, writeFileSync } from "fs";
+import { appendFileSync, readFileSync, existsSync, mkdirSync, writeFileSync, statSync } from "fs";
+import http from "http";
+import { readFile } from "fs/promises";
 
 // Kill previous server if exists
 const PID_FILE = ".server.pid";
@@ -18,7 +20,56 @@ if (existsSync(PID_FILE)) {
 // Save current PID
 writeFileSync(PID_FILE, process.pid.toString());
 
-const wss = new WebSocketServer({ port: 8080 });
+// Build walkers bundle on startup (idempotent)
+async function buildWalkers() {
+  try {
+    const result1 = Bun.spawnSync({ cmd: ["bun", "build", "client.ts", "--outdir", "walkers/dist", "--target=browser", "--format=esm"] });
+    const result2 = Bun.spawnSync({ cmd: ["bun", "build", "state_machine.ts", "--outdir", "walkers/dist", "--target=browser", "--format=esm"] });
+    const result3 = Bun.spawnSync({ cmd: ["bun", "build", "walkers/index.ts", "--outdir", "walkers/dist", "--target=browser", "--format=esm"] });
+    if (!result1.success || !result2.success || !result3.success) {
+      console.error("[BUILD] walkers build failed", { r1: result1.success, r2: result2.success, r3: result3.success });
+    } else {
+      console.log("[BUILD] walkers bundle ready");
+    }
+  } catch (e) {
+    console.error("[BUILD] error while building walkers:", e);
+  }
+}
+
+await buildWalkers();
+
+// Simple static server + WebSocket on the same port
+const server = http.createServer(async (req, res) => {
+  try {
+    const url = new URL(req.url || "/", `http://${req.headers.host}`);
+    let path = url.pathname;
+    if (path === "/") path = "/index.html";
+
+    // Serve from walkers/ root
+    let filesystemPath: string;
+    if (path.startsWith("/dist/")) {
+      filesystemPath = `walkers${path}`; // walkers/dist/...
+    } else {
+      filesystemPath = `walkers${path}`; // walkers/index.html, assets
+    }
+
+    // Basic content-type
+    const ct = path.endsWith(".html") ? "text/html" :
+               path.endsWith(".js")   ? "application/javascript" :
+               path.endsWith(".css")  ? "text/css" :
+               path.endsWith(".map")  ? "application/json" :
+               "application/octet-stream";
+
+    const data = await readFile(filesystemPath);
+    res.writeHead(200, { "Content-Type": ct });
+    res.end(data);
+  } catch (err) {
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.end("Not Found");
+  }
+});
+
+const wss = new WebSocketServer({ server });
 
 function now(): number {
   return Math.floor(Date.now());
@@ -134,4 +185,6 @@ wss.on("connection", (ws) => {
   });
 });
 
-console.log("WebSocket server running on port 8080");
+server.listen(8080, () => {
+  console.log("Server running at http://localhost:8080 (HTTP + WebSocket)");
+});

@@ -5,9 +5,7 @@
     "check": "tsc --target esnext --noEmit --skipLibCheck",
     "dev": "bun run index.ts",
     "server": "bun run server.ts",
-    "client": "bun run client_cli.ts",
-    "letters:build": "cd letters && ./build.sh",
-    "letters:serve": "cd letters && bun run serve.ts"
+    "client": "bun run client_cli.ts"
   },
   "dependencies": {
     "ws": "^8.18.0"

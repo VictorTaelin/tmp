@@ -17,7 +17,7 @@ if (existsSync(PID_FILE)) {
 // Save current PID
 writeFileSync(PID_FILE, process.pid.toString());
 
-// Simple HTTP server for serving the letters game
+// Simple HTTP server for serving the walkers game (legacy; unified in server.ts)
 const server = Bun.serve({
   port: 3000,
   async fetch(req) {
@@ -42,5 +42,5 @@ const server = Bun.serve({
   },
 });
 
-console.log(`Letters game server running at http://localhost:${server.port}`);
+console.log(`Walkers game server running at http://localhost:${server.port}`);
 console.log(`Open http://localhost:${server.port} in your browser`);

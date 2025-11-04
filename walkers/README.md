@@ -1,11 +1,11 @@
-# Letters - Multiplayer Browser Game
+# Walkers - Multiplayer Browser Game
 
-A simple multiplayer game demo built with the StateMachine system. Players control letters that move around a 2D space.
+A simple multiplayer game demo built with the StateMachine system. Players control walkers (single-letter avatars) that move around a 2D space.
 
 ## Project Structure
 
 ```
-letters/
+walkers/
 ├── index.ts          # Game logic (state, on_tick, on_post)
 ├── index.html        # Game UI with canvas
 ├── build.sh          # Build script
@@ -32,16 +32,16 @@ bun run server
 
 From the root directory:
 ```bash
-bun run letters:build
+bun run server
 ```
 
-This compiles TypeScript to JavaScript in `letters/dist/`.
+The unified server builds the browser bundle automatically.
 
 ### 3. Start the Game Server
 
 From the root directory:
 ```bash
-bun run letters:serve
+Open http://localhost:8080 in your browser
 ```
 
 ### 4. Open the Game
