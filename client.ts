@@ -10,7 +10,8 @@ const time_sync: TimeSync = {
   request_sent_at: 0
 };
 
-const ws = new WebSocket("ws://localhost:8080");
+// Auto-detect server hostname (works for both localhost and remote)
+const ws = new WebSocket(`ws://${window.location.hostname}:8080`);
 
 // Room watchers with callbacks
 type MessageHandler = (message: any) => void;
